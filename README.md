@@ -6,7 +6,7 @@ Una semplice applicazione web che simula il comportamento di un counter (contato
 
 ## 🚀 Demo live
 
-👉 **[Prova l'applicazione qui](https://lucab43.github.io/counter-app/)**
+👉 **[Prova l'applicazione qui](https://lucab43.github.io/Counter-app/)**
 
 ---
 
@@ -71,9 +71,6 @@ npx serve .
 
 ---
 
-## 📸 Screenshot
-
-> *(aggiungi uno screenshot dell'app nella cartella `img/` e linkalo qui)*
 
 ---
 
