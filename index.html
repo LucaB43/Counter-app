@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Counter App</title>
+    <style>
+/* ── Reset & variabili ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:         #0d0d0d;
+  --surface:    #141414;
+  --border:     #2a2a2a;
+  --text:       #c8c8c8;
+  --text-dim:   #555;
+  --accent:     #00e5a0;
+  --positive:   #00e5a0;
+  --negative:   #ff4d6d;
+  --zero:       #c8c8c8;
+  --font-mono:  "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.counter {
+  width: min(360px, 90vw);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.counter__header {
+  background: var(--border);
+  padding: 8px 14px;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counter__version {
+  margin-left: auto;
+  color: var(--accent);
+}
+
+.counter__display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 32px;
+  gap: 10px;
+}
+
+.counter__label {
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+}
+
+.counter__value {
+  font-size: clamp(4rem, 16vw, 6rem);
+  font-weight: 700;
+  line-height: 1;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.counter__value.positive { color: var(--positive); }
+.counter__value.negative { color: var(--negative); }
+.counter__value.zero     { color: var(--zero); }
+
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.counter__value.pulse {
+  animation: pulse 0.2s ease-out;
+}
+
+.counter__controls {
+  display: flex;
+  gap: 10px;
+  padding: 0 24px 28px;
+}
+
+.counter__btn {
+  flex: 1;
+  height: 52px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+}
+
+.counter__btn:hover {
+  background: var(--border);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.counter__btn:active {
+  transform: scale(0.94);
+}
+
+#btn-reset {
+  flex: 0 0 52px;
+  font-size: 1rem;
+  color: var(--text-dim);
+}
+
+#btn-reset:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.counter__status {
+  border-top: 1px solid var(--border);
+  padding: 8px 14px;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#saved-indicator {
+  margin-left: auto;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#saved-indicator.visible {
+  opacity: 1;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.blink {
+  color: var(--accent);
+  animation: blink 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .counter__value.pulse { animation: none; }
+  .blink                { animation: none; }
+}
+
+.counter__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+// ── counter.js ────────────────────────────────────────────────────────────
+const Counter = (() => {
+  let value = 0;
+
+  const getValue = () => value;
+
+  const increment = () => { value += 1; return value; };
+  const decrement = () => { value -= 1; return value; };
+  const reset     = () => { value  = 0; return value; };
+
+  const save = () => localStorage.setItem("counter_value", value);
+
+  const load = () => {
+    const stored = localStorage.getItem("counter_value");
+    if (stored !== null) value = parseInt(stored, 10);
+    return value;
+  };
+
+  return { getValue, increment, decrement, reset, save, load };
+})();
+
+// ── main.js ───────────────────────────────────────────────────────────────
+function createDisplay() {
+  const wrapper = document.createElement("div");
+  wrapper.classList.add("counter__display");
+
+  const label = document.createElement("span");
+  label.classList.add("counter__label");
+  label.textContent = "COUNTER";
+
+  const valueEl = document.createElement("span");
+  valueEl.classList.add("counter__value");
+  valueEl.id = "counter-value";
+  valueEl.textContent = "0";
+
+  wrapper.appendChild(label);
+  wrapper.appendChild(valueEl);
+  return wrapper;
+}
+
+function createButton(symbol, id, ariaLabel) {
+  const btn = document.createElement("button");
+  btn.classList.add("counter__btn");
+  btn.id = id;
+  btn.setAttribute("aria-label", ariaLabel);
+  btn.textContent = symbol;
+  return btn;
+}
+
+function createControls() {
+  const controls = document.createElement("div");
+  controls.classList.add("counter__controls");
+  controls.appendChild(createButton("−", "btn-decrement", "Decrementa il counter"));
+  controls.appendChild(createButton("⟳", "btn-reset",     "Azzera il counter"));
+  controls.appendChild(createButton("+", "btn-increment", "Incrementa il counter"));
+  return controls;
+}
+
+function createStatusBar() {
+  const bar = document.createElement("div");
+  bar.classList.add("counter__status");
+
+  const sessionLabel = document.createElement("span");
+  sessionLabel.textContent = "sessione:";
+
+  const sessionCount = document.createElement("span");
+  sessionCount.id = "session-ops";
+  sessionCount.textContent = "0 operazioni";
+
+  const savedLabel = document.createElement("span");
+  savedLabel.id = "saved-indicator";
+
+  bar.appendChild(sessionLabel);
+  bar.appendChild(sessionCount);
+  bar.appendChild(savedLabel);
+  return bar;
+}
+
+function buildUI(root) {
+  const card = document.createElement("div");
+  card.classList.add("counter");
+
+  const header = document.createElement("div");
+  header.classList.add("counter__header");
+  header.innerHTML = `<span class="blink">▮</span> counter_app <span class="counter__version">v1.0</span>`;
+
+  card.appendChild(header);
+  card.appendChild(createDisplay());
+  card.appendChild(createControls());
+  card.appendChild(createStatusBar());
+  root.appendChild(card);
+}
+
+function updateDisplay(newValue) {
+  const el = document.getElementById("counter-value");
+  el.classList.remove("positive", "negative", "zero");
+  if (newValue > 0)      el.classList.add("positive");
+  else if (newValue < 0) el.classList.add("negative");
+  else                   el.classList.add("zero");
+
+  el.classList.remove("pulse");
+  void el.offsetWidth;
+  el.classList.add("pulse");
+  el.textContent = newValue;
+}
+
+function updateSessionOps(count) {
+  document.getElementById("session-ops").textContent =
+    `${count} ${count === 1 ? "operazione" : "operazioni"}`;
+}
+
+function showSaved() {
+  const el = document.getElementById("saved-indicator");
+  el.textContent = "✔ salvato";
+  el.classList.add("visible");
+  setTimeout(() => el.classList.remove("visible"), 1500);
+}
+
+function init() {
+  const root = document.getElementById("app");
+  buildUI(root);
+
+  const initial = Counter.load();
+  updateDisplay(initial);
+
+  let sessionOps = 0;
+
+  document.getElementById("btn-increment").addEventListener("click", () => {
+    updateDisplay(Counter.increment());
+    Counter.save();
+    updateSessionOps(++sessionOps);
+    showSaved();
+  });
+
+  document.getElementById("btn-decrement").addEventListener("click", () => {
+    updateDisplay(Counter.decrement());
+    Counter.save();
+    updateSessionOps(++sessionOps);
+    showSaved();
+  });
+
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    updateDisplay(Counter.reset());
+    Counter.save();
+    sessionOps = 0;
+    updateSessionOps(sessionOps);
+    showSaved();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp")              document.getElementById("btn-increment").click();
+    if (e.key === "ArrowDown")            document.getElementById("btn-decrement").click();
+    if (e.key === "r" || e.key === "R")   document.getElementById("btn-reset").click();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
