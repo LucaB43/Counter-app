@@ -6,7 +6,7 @@ Una semplice applicazione web che simula il comportamento di un counter (contato
 
 ## 🚀 Demo live
 
-👉 **[Prova l'applicazione qui](lucab43.github.io/Counter-app/)**
+👉 **[Prova l'applicazione qui](https://lucab43.github.io/Counter-app/)**
 
 ---
 
